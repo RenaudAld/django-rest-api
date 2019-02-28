@@ -278,6 +278,7 @@ class BookingView(APIView):
     def delete(self, request):
         try:
             booking_id = request.data.get("booking_id", "")
+            print(booking_id)
             user = request.user
             booking = Booking.objects.get(id=booking_id, user=user)
             if datetime.now() > booking.start_time:
@@ -322,59 +323,63 @@ class MultipleBookingView(APIView):
     permission_classes = (permissions.IsAuthenticated,)
 
     def post(self, request):
-        start = datetime.strptime(request.data.get("start", ""), '%Y-%m-%d %H:%M:%S.%f')
-        end = datetime.strptime(request.data.get("end", ""), '%Y-%m-%d %H:%M:%S.%f')
-        booking_hour_length = (end-start).total_seconds()/3600
-        kart_ids = request.data.get("kart_ids", "")
-        user = request.user
+        try:
+            start = datetime.strptime(request.data.get("start", ""), '%Y-%m-%d %H:%M:%S.%f')
+            end = datetime.strptime(request.data.get("end", ""), '%Y-%m-%d %H:%M:%S.%f')
+            booking_hour_length = (end-start).total_seconds()/3600
+            kart_ids = request.data.get("kart_ids", "")
+            user = request.user
 
-        # you can only book a kart "in the future"
-        if start < datetime.now():
-            return Response(data="Booking before present time is not possible.", status=status.HTTP_401_UNAUTHORIZED)
+            # you can only book a kart "in the future"
+            if start < datetime.now():
+                return Response(data="Booking before present time is not possible.", status=status.HTTP_401_UNAUTHORIZED)
 
-        # booking must last more than one hour
-        elif booking_hour_length < 1:
-            return Response(data="Booking must be 1hr minimum.", status=status.HTTP_401_UNAUTHORIZED)
+            # booking must last more than one hour
+            elif booking_hour_length < 1:
+                return Response(data="Booking must be 1hr minimum.", status=status.HTTP_401_UNAUTHORIZED)
 
-        # check if kart is available
-        kart_overlaping_bookings = Booking.objects.filter(Q(end_time__gte=start) & Q(start_time__lte=end) & Q(kart__id__in=kart_ids))
-        if kart_overlaping_bookings:
-            return Response(data={
-                "message": "Some karts are not available during period",
-                "not_available_karts": list(map(lambda x:x.kart.id, kart_overlaping_bookings))
-            }, status=status.HTTP_401_UNAUTHORIZED)
+            # check if kart is available
+            kart_overlaping_bookings = Booking.objects.filter(Q(end_time__gte=start) & Q(start_time__lte=end) & Q(kart__id__in=kart_ids))
+            if kart_overlaping_bookings:
+                return Response(data={
+                    "message": "Some karts are not available during period",
+                    "not_available_karts": list(map(lambda x:x.kart.id, kart_overlaping_bookings))
+                }, status=status.HTTP_401_UNAUTHORIZED)
 
-        # check if user's balance is enough
-        balance = Balance.objects.get(user=user)
-        karts = Kart.objects.filter(id__in=kart_ids)
-        # check if all ids given correspond to a kart
-        if karts.count() < len(kart_ids):
-            return Response("Provided ids are not correct")
+            # check if user's balance is enough
+            balance = Balance.objects.get(user=user)
+            karts = Kart.objects.filter(id__in=kart_ids)
+            # check if all ids given correspond to a kart
+            if karts.count() < len(kart_ids):
+                return Response("Provided ids are not correct")
 
-        user_balance = balance.get_balance()
-        print(karts.aggregate(Sum('hourly_cost')))
-        to_pay = booking_hour_length * karts.aggregate(Sum('hourly_cost'))['hourly_cost__sum']
-        to_pay = round(to_pay, 2)
-        if user_balance < to_pay:
-            return Response(data="Not enough balance to book.", status=status.HTTP_401_UNAUTHORIZED)
-        # proceed booking
-        balance.balance -= to_pay
-        balance.save()
-        bookings = []
-        for kart in karts:
-            new_booking = Booking.objects.create(
-                start_time = start,
-                end_time = end,
-                kart = kart,
-                user = user
-            )
-            bookings.append(BookingSerializer(new_booking).data)
-        return Response({
-            "reservation": bookings,
-            "price": '$'+str(to_pay),
-            "new_balance": BalanceSerializer(balance).data
-        })
+            user_balance = balance.get_balance()
+            print(karts.aggregate(Sum('hourly_cost')))
+            to_pay = booking_hour_length * karts.aggregate(Sum('hourly_cost'))['hourly_cost__sum']
+            to_pay = round(to_pay, 2)
+            if user_balance < to_pay:
+                return Response(data="Not enough balance to book.", status=status.HTTP_401_UNAUTHORIZED)
+            # proceed booking
+            balance.balance -= to_pay
+            balance.save()
+            bookings = []
+            for kart in karts:
+                new_booking = Booking.objects.create(
+                    start_time = start,
+                    end_time = end,
+                    kart = kart,
+                    user = user
+                )
+                bookings.append(BookingSerializer(new_booking).data)
+            return Response({
+                "reservation": bookings,
+                "price": '$'+str(to_pay),
+                "new_balance": BalanceSerializer(balance).data
+            })
+        except ValueError:
+            return Response("Datetime format not respected. Must be %Y-%m-%d %H:%M:%S.%f")
 
+            
 class PopulateView(APIView):
     """
     GET populate/
