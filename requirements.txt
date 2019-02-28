@@ -1,0 +1,7 @@
+Django==2.1.7
+djangorestframework==3.9.1
+djangorestframework-jwt==1.11.0
+mysqlclient==1.4.2.post1
+PyJWT==1.7.1
+pytz==2018.9
+validate-email==1.3

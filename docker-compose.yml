@@ -1,0 +1,22 @@
+version: '2'
+
+services:
+    django:
+        build: .
+        command: bash -c "python manage.py makemigrations && python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+        container_name: ktkart_api
+        volumes:
+            - .:/ktkart_api
+        ports:
+            - "8000:8000"
+        depends_on:
+            - database
+        links:
+            - database
+    database:
+        image: mysql:5.7
+        environment:
+            MYSQL_ROOT_PASSWORD: docker
+            MYSQL_DATABASE: docker
+            MYSQL_USER: docker
+            MYSQL_PASSWORD: docker
