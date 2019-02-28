@@ -1,2 +1,4 @@
 env/
-*/__pycache__/
+ktkart/__pycache__/
+ktkart/api/__pycache__/
+ktkart/api/migrations/__pycache__/
