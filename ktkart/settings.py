@@ -78,23 +78,23 @@ WSGI_APPLICATION = 'ktkart.wsgi.application'
 
 DATABASES = {
     # SETTINGS WHEN USiNG DOCKER
-    # 'default': {
-    #     'ENGINE': 'django.db.backends.mysql',
-    #     'NAME': 'docker',
-    #     'USER': 'docker',
-    #     'PASSWORD': 'docker',
-    #     'HOST': 'database',
-    #     'PORT': 3306
-    # },
-    # SETTINGS WHEN RUNNING OUTSIDE DOCKER
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'ktkart',
-        'USER': 'root',
-        'PASSWORD': 'new-password',
-        'HOST': '127.0.0.1',
-        'PORT': ''
-    }
+        'NAME': 'docker',
+        'USER': 'docker',
+        'PASSWORD': 'docker',
+        'HOST': 'database',
+        'PORT': 3306
+    },
+    # SETTINGS WHEN RUNNING OUTSIDE DOCKER
+    # 'default': {
+    #     'ENGINE': 'django.db.backends.mysql',
+    #     'NAME': 'ktkart',
+    #     'USER': 'root',
+    #     'PASSWORD': 'new-password',
+    #     'HOST': '127.0.0.1',
+    #     'PORT': ''
+    # }
 }
 
 

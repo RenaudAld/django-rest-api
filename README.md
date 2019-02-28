@@ -2,11 +2,11 @@
 
 ## Getting started
 
-To run the Django server and the MySQL databases
+To run the Django server and the MySQL database:
 
 ```
 docker-compose build
-docker-compose up
+docker-compose up 
 ```
 
 You can reach the API at http://localhost:8000/.
@@ -18,6 +18,8 @@ docker-compose run django python manage.py createsuperuser
 ```
 
 I did not find a proper way to initialize the database with the karts, add them to the database by making a GET request to http://localhost:8000/api/populate/.
+
+Also, the default adtabase settigs are set to work with Docker, if you want to run the API outside Docker you will need to comment/uncomment the database section of `ktkart/settingd.py`.
 
 ## Database
 
@@ -100,16 +102,14 @@ If the email and the password are correct, the Response will contain the JWToken
 }
 ```
 
-You must the put this token in the Authorization header, with type Bearer Token.
+You must the put this token in the Authorization header, with type Bearer Token to make requests on protected routes.
 
 #### Retrieve the balance of the user:
 
 - endpoint: http://localhost:8000/api/balance/get/
 - HTTP method: PUT
 - Authorization: IsAuthenticated
-- Body schema: .
-
-You must the put this token in the Authorization header, with type Bearer Token.
+- Body schema: none
 
 #### Retrieve the balance of the user:
 
@@ -134,7 +134,7 @@ The start and and field must be a datetime string formated: `"year-month-day hou
 - endpoint: http://localhost:8000/api/booking/
 - HTTP method: GET
 - Authorization: IsAuthenticated
-- Body schema: .
+- Body schema: none
 
 #### Create a new booking:
 
@@ -193,3 +193,7 @@ Users give a start and end time, a list of kart ids. Multiple booking will succe
 - all ids provided correspond to a kart
 - all karts are available during the period
 - the user has enough balance to book all karts
+
+## Testing
+
+Tests are not working with Docker due to some MySQL connection error. You can test outside docker running.
